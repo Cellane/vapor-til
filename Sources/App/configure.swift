@@ -24,24 +24,45 @@ public func configure(
     middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
     services.register(middlewares)
 
-    /// Register the configured SQLite database to the database config.
     var databases = DatabaseConfig()
-    let hostname = Environment.get("DATABASE_HOSTNAME") ?? "localhost"
-    let username = Environment.get("DATABASE_USER") ?? "vapor"
-    let databaseName = Environment.get("DATABASE_DB") ?? "vapor"
-    let password = Environment.get("DATABASE_PASSWORD") ?? "password"
-    let databaseConfig = PostgreSQLDatabaseConfig(
-        hostname: hostname,
-        username: username,
-        database: databaseName,
-        password: password
-    )
-    let database = PostgreSQLDatabase(config: databaseConfig)
-    databases.add(database: database, as: .psql)
+
+    switch env {
+    case .testing:
+        let databaseConfig = PostgreSQLDatabaseConfig(
+            hostname: "localhost",
+            port: 5555,
+            username: "vapor-test",
+            database: "vapor-test",
+            password: "password-test"
+        )
+        let database = PostgreSQLDatabase(config: databaseConfig)
+
+        databases.add(database: database, as: .psql)
+    default:
+        let hostname = Environment.get("DATABASE_HOSTNAME") ?? "localhost"
+        let username = Environment.get("DATABASE_USER") ?? "vapor"
+        let databaseName = Environment.get("DATABASE_DB") ?? "vapor"
+        let password = Environment.get("DATABASE_PASSWORD") ?? "password"
+        let databaseConfig = PostgreSQLDatabaseConfig(
+            hostname: hostname,
+            username: username,
+            database: databaseName,
+            password: password
+        )
+        let database = PostgreSQLDatabase(config: databaseConfig)
+
+        databases.add(database: database, as: .psql)
+    }
+
     services.register(databases)
 
     /// Configure migrations
     var migrations = MigrationConfig()
+
+    if env == .testing {
+        migrations.add(migration: TestDatabaseWipe.self, database: .psql, name: UUID().uuidString)
+    }
+
     migrations.add(model: User.self, database: .psql)
     migrations.add(model: Acronym.self, database: .psql)
     migrations.add(model: Category.self, database: .psql)

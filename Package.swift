@@ -7,12 +7,13 @@ let package = Package(
         // 💧 A server-side Swift web framework.
         .package(url: "https://github.com/vapor/vapor.git", from: "3.0.0-rc.2"),
 
-        .package(url: "https://github.com/vapor/fluent-postgresql.git", from: "1.0.0-rc.2")
+        .package(url: "https://github.com/vapor/fluent-postgresql.git", from: "1.0.0-rc.2"),
+        .package(url: "https://github.com/LiveUI/VaporTestTools.git", from: "0.1.4")
     ],
     targets: [
         .target(name: "App", dependencies: ["FluentPostgreSQL", "Vapor"]),
         .target(name: "Run", dependencies: ["App"]),
-        .testTarget(name: "AppTests", dependencies: ["App"])
+        .testTarget(name: "AppTests", dependencies: ["App", "VaporTestTools"])
     ]
 )
 
