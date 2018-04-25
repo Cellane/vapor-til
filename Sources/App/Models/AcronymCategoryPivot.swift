@@ -5,13 +5,13 @@ final class AcronymCategoryPivot: PostgreSQLUUIDPivot {
     var id: UUID?
     var acronymID: Acronym.ID
     var categoryID: Category.ID
-    
+
     typealias Left = Acronym
     typealias Right = Category
-    
+
     static var leftIDKey: LeftIDKey = \.acronymID
     static var rightIDKey: RightIDKey = \.categoryID
-    
+
     init(_ acronymID: Acronym.ID, _ categoryID: Category.ID) {
         self.acronymID = acronymID
         self.categoryID = categoryID
