@@ -31,9 +31,9 @@ public func configure(
         let databaseConfig = PostgreSQLDatabaseConfig(
             hostname: "localhost",
             port: 5555,
-            username: "vapor-test",
-            database: "vapor-test",
-            password: "password-test"
+            username: "vapor",
+            database: "vapor",
+            password: "password"
         )
         let database = PostgreSQLDatabase(config: databaseConfig)
 
@@ -58,7 +58,6 @@ public func configure(
 
     /// Configure migrations
     var migrations = MigrationConfig()
-
     if env == .testing {
         migrations.add(migration: TestDatabaseWipe.self, database: .psql, name: UUID().uuidString)
     }
