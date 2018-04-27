@@ -66,6 +66,10 @@ public func configure(
     migrations.add(model: Acronym.self, database: .psql)
     migrations.add(model: Category.self, database: .psql)
     migrations.add(model: AcronymCategoryPivot.self, database: .psql)
+
+    if env == .testing {
+        migrations.add(migration: PopulateUsers.self, database: .psql)
+    }
     services.register(migrations)
 
     var commandConfig = CommandConfig.default()
