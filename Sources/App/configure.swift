@@ -58,10 +58,6 @@ public func configure(
 
     /// Configure migrations
     var migrations = MigrationConfig()
-    if env == .testing {
-        migrations.add(migration: TestDatabaseWipe.self, database: .psql, name: UUID().uuidString)
-    }
-
     migrations.add(model: User.self, database: .psql)
     migrations.add(model: Acronym.self, database: .psql)
     migrations.add(model: Category.self, database: .psql)
