@@ -39,6 +39,32 @@ final class CategoryTests: XCTestCase {
         XCTAssertNotNil(receivedCategory.id)
     }
 
+    func testGettingASingleCategoryFromTheAPI() throws {
+        let category = try Category.create(name: categoryName, on: conn)
+        let returnedCategory = try app.getResponse(to: "\(categoriesURI)/\(category.id!)", decodeTo: Category.self)
+
+        XCTAssertEqual(returnedCategory.name, categoryName)
+        XCTAssertEqual(returnedCategory.id, category.id)
+    }
+
+    func testGettingCategoriesAcronymsFromTheAPI() throws {
+        let acronymShort = "OMG"
+        let acronymLong = "Oh My God"
+        let acronym = try Acronym.create(short: acronymShort, long: acronymLong, on: conn)
+        let acronym2 = try Acronym.create(on: conn)
+        let category = try Category.create(name: categoryName, on: conn)
+
+        try app.sendRequest(to: "/api/acronyms/\(acronym.id!)/categories/\(category.id!)", method: .POST)
+        try app.sendRequest(to: "/api/acronyms/\(acronym2.id!)/categories/\(category.id!)", method: .POST)
+
+        let acronyms = try app.getResponse(to: "\(categoriesURI)/\(category.id!)/acronyms", decodeTo: [Acronym].self)
+
+        XCTAssertEqual(acronyms.count, 2)
+        XCTAssertEqual(acronyms[0].id, acronym.id)
+        XCTAssertEqual(acronyms[0].short, acronym.short)
+        XCTAssertEqual(acronyms[0].long, acronym.long)
+    }
+
     func testLinuxTestSuiteIncludesAllTests() {
         #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
         let thisClass = type(of: self)
@@ -51,6 +77,8 @@ final class CategoryTests: XCTestCase {
     static let allTests = [
         ("testCategoriesCanBeRetrievedFromAPI", testCategoriesCanBeRetrievedFromAPI),
         ("testCategoryCanBeSavedWithAPI", testCategoryCanBeSavedWithAPI),
+        ("testGettingASingleCategoryFromTheAPI", testGettingASingleCategoryFromTheAPI),
+        ("testGettingCategoriesAcronymsFromTheAPI", testGettingCategoriesAcronymsFromTheAPI),
         ("testLinuxTestSuiteIncludesAllTests", testLinuxTestSuiteIncludesAllTests)
     ]
 }

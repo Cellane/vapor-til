@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+    vapor:
+        build:
+            context: .
+            dockerfile: Dockerfile-dev
+        image: tilapp:dev
+        privileged: true
+        volumes:
+            - .:/app
+        command: bash
+        stdin_open: true
+        tty: true
+    db:
+        image: postgres
+        ports:
+            - "5555:5432"
+        environment:
+            POSTGRES_DB: vapor
+            POSTGRES_USER: vapor
+            POSTGRES_PASSWORD: password

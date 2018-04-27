@@ -26,6 +26,7 @@ extension Application {
         try Application.testable(envArgs: revertEnvArgs).asyncRun().wait()
     }
 
+    @discardableResult
     func sendRequest(to path: String, method: HTTPMethod, headers: HTTPHeaders = .init(), body: HTTPBody = .init()) throws -> Response {
         let responder = try self.make(Responder.self)
         let request = HTTPRequest(method: method, url: URL(string: path)!, headers: headers, body: body)
@@ -34,12 +35,14 @@ extension Application {
         return try responder.respond(to: wrappedRequest).wait()
     }
 
+    @discardableResult
     func getResponse<T>(to path: String, method: HTTPMethod = .GET, headers: HTTPHeaders = .init(), body: HTTPBody = .init(), decodeTo type: T.Type) throws -> T where T: Decodable {
         let response = try self.sendRequest(to: path, method: method, headers: headers, body: body)
 
         return try JSONDecoder().decode(type, from: response.http.body.data!)
     }
 
+    @discardableResult
     func getResponse<T, U>(to path: String, method: HTTPMethod = .GET, headers: HTTPHeaders = .init(), data: U, decodeTo type: T.Type) throws -> T where T: Decodable, U: Encodable {
         let body = try HTTPBody(data: JSONEncoder().encode(data))
 
