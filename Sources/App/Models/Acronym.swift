@@ -36,3 +36,14 @@ extension Acronym: Migration {
         }
     }
 }
+
+extension Acronym: Validatable {
+    static func validations() throws -> Validations<Acronym> {
+        var validations = Validations(Acronym.self)
+
+        try validations.add(\.short, .count(2...) && .alphanumeric)
+        try validations.add(\.long, .characterSet(.alphanumerics + .whitespaces))
+
+        return validations
+    }
+}
