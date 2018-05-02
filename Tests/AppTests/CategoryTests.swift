@@ -13,11 +13,11 @@ final class CategoryTests: XCTestCase {
         try! Application.reset()
 
         app = try! Application.testable()
-        conn = try! app.requestConnection(to: .psql).wait()
+        conn = try! app.newConnection(to: .psql).wait()
     }
 
     override func tearDown() {
-        app.releaseConnection(conn, to: .psql)
+        conn.close()
     }
 
     func testCategoriesCanBeRetrievedFromAPI() throws {
