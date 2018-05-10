@@ -3,6 +3,7 @@ import FluentPostgreSQL
 
 extension User {
     static func create(name: String = "Luke", username: String = "lukes", on connection: PostgreSQLConnection) throws -> User {
+        // Required due to the added UNIQUE constraint
         if let existing = try User.query(on: connection).filter(\.username == username).first().wait() {
             return existing
         }

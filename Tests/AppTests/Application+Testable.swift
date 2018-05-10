@@ -1,15 +1,15 @@
 import Vapor
-@testable import App
+import App
 import FluentPostgreSQL
 
 extension Application {
     static func testable(envArgs: [String]? = nil) throws -> Application {
         var config = Config.default()
-        var services = Services.default()
         var env = Environment.testing
+        var services = Services.default()
 
-        if let envArgs = envArgs {
-            env.arguments = envArgs
+        if let environmentArgs = envArgs {
+            env.arguments = environmentArgs
         }
 
         try App.configure(&config, &env, &services)
@@ -21,9 +21,9 @@ extension Application {
     }
 
     static func reset() throws {
-        let revertEnvArgs = ["vapor", "revert", "--all", "-y"]
+        let revertEnvironment = ["vapor", "revert", "--all", "-y"]
 
-        try Application.testable(envArgs: revertEnvArgs).asyncRun().wait()
+        try Application.testable(envArgs: revertEnvironment).asyncRun().wait()
     }
 
     @discardableResult
@@ -33,6 +33,12 @@ extension Application {
         let wrappedRequest = Request(http: request, using: self)
 
         return try responder.respond(to: wrappedRequest).wait()
+    }
+
+    func sendRequest<T>(to path: String, method: HTTPMethod, headers: HTTPHeaders, data: T) throws where T: Encodable {
+        let body = try HTTPBody(data: JSONEncoder().encode(data))
+
+        _ = try self.sendRequest(to: path, method: method, headers: headers, body: body)
     }
 
     @discardableResult
@@ -47,11 +53,5 @@ extension Application {
         let body = try HTTPBody(data: JSONEncoder().encode(data))
 
         return try self.getResponse(to: path, method: method, headers: headers, body: body, decodeTo: type)
-    }
-
-    func sendRequest<T>(to path: String, method: HTTPMethod, headers: HTTPHeaders, data: T) throws where T: Encodable {
-        let body = try HTTPBody(data: JSONEncoder().encode(data))
-
-        _ = try self.sendRequest(to: path, method: method, headers: headers, body: body)
     }
 }

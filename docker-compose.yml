@@ -1,22 +1,16 @@
 version: "3"
 
 services:
-    vapor:
-        build:
-            context: .
-            dockerfile: Dockerfile-dev
-        image: tilapp:dev
-        privileged: true
-        volumes:
-            - .:/app
-        command: bash
-        stdin_open: true
-        tty: true
-    db:
-        image: postgres
-        ports:
-            - "5555:5432"
+    til-app:
+        depends_on:
+            - postgres
+        build: .
         environment:
-            POSTGRES_DB: vapor
+            DATABASE_HOSTNAME: postgres
+            DATABASE_PORT: 5432
+    postgres:
+        image: postgres
+        environment:
+            POSTGRES_DB: vapor-test
             POSTGRES_USER: vapor
             POSTGRES_PASSWORD: password

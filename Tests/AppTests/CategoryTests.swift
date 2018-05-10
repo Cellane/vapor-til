@@ -37,17 +37,23 @@ final class CategoryTests: XCTestCase {
 
         XCTAssertEqual(receivedCategory.name, categoryName)
         XCTAssertNotNil(receivedCategory.id)
+
+        let categories = try app.getResponse(to: categoriesURI, decodeTo: [App.Category].self)
+
+        XCTAssertEqual(categories.count, 1)
+        XCTAssertEqual(categories[0].name, categoryName)
+        XCTAssertEqual(categories[0].id, receivedCategory.id)
     }
 
     func testGettingASingleCategoryFromTheAPI() throws {
         let category = try Category.create(name: categoryName, on: conn)
-        let returnedCategory = try app.getResponse(to: "\(categoriesURI)/\(category.id!)", decodeTo: Category.self)
+        let returnedCategory = try app.getResponse(to: "\(categoriesURI)\(category.id!)", decodeTo: Category.self)
 
         XCTAssertEqual(returnedCategory.name, categoryName)
         XCTAssertEqual(returnedCategory.id, category.id)
     }
 
-    func testGettingCategoriesAcronymsFromTheAPI() throws {
+    func testGettingACategoriesAcronymsFromTheAPI() throws {
         let acronymShort = "OMG"
         let acronymLong = "Oh My God"
         let acronym = try Acronym.create(short: acronymShort, long: acronymLong, on: conn)
@@ -57,12 +63,12 @@ final class CategoryTests: XCTestCase {
         try app.sendRequest(to: "/api/acronyms/\(acronym.id!)/categories/\(category.id!)", method: .POST)
         try app.sendRequest(to: "/api/acronyms/\(acronym2.id!)/categories/\(category.id!)", method: .POST)
 
-        let acronyms = try app.getResponse(to: "\(categoriesURI)/\(category.id!)/acronyms", decodeTo: [Acronym].self)
+        let acronyms = try app.getResponse(to: "\(categoriesURI)\(category.id!)/acronyms", decodeTo: [Acronym].self)
 
         XCTAssertEqual(acronyms.count, 2)
         XCTAssertEqual(acronyms[0].id, acronym.id)
-        XCTAssertEqual(acronyms[0].short, acronym.short)
-        XCTAssertEqual(acronyms[0].long, acronym.long)
+        XCTAssertEqual(acronyms[0].short, acronymShort)
+        XCTAssertEqual(acronyms[0].long, acronymLong)
     }
 
     func testLinuxTestSuiteIncludesAllTests() {
@@ -78,7 +84,7 @@ final class CategoryTests: XCTestCase {
         ("testCategoriesCanBeRetrievedFromAPI", testCategoriesCanBeRetrievedFromAPI),
         ("testCategoryCanBeSavedWithAPI", testCategoryCanBeSavedWithAPI),
         ("testGettingASingleCategoryFromTheAPI", testGettingASingleCategoryFromTheAPI),
-        ("testGettingCategoriesAcronymsFromTheAPI", testGettingCategoriesAcronymsFromTheAPI),
+        ("testGettingACategoriesAcronymsFromTheAPI", testGettingACategoriesAcronymsFromTheAPI),
         ("testLinuxTestSuiteIncludesAllTests", testLinuxTestSuiteIncludesAllTests)
     ]
 }
