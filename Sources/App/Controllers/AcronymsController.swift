@@ -87,9 +87,7 @@ struct AcronymsController: RouteCollection {
         return try flatMap(to: HTTPStatus.self,
                            req.parameters.next(Acronym.self),
                            req.parameters.next(Category.self)) { acronym, category in
-            let pivot = try AcronymCategoryPivot(acronym.requireID(), category.requireID())
-
-            return pivot.save(on: req).transform(to: .created)
+            return acronym.categories.attach(category, on: req).transform(to: .created)
         }
     }
 
