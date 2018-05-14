@@ -14,6 +14,20 @@ final class Acronym: Codable {
     }
 }
 
+extension Acronym {
+    func willCreate(on connection: PostgreSQLConnection) throws -> EventLoopFuture<Acronym> {
+        try validate()
+
+        return Future.map(on: connection) { self }
+    }
+
+    func willUpdate(on connection: PostgreSQLConnection) throws -> EventLoopFuture<Acronym> {
+        try validate()
+
+        return Future.map(on: connection) { self }
+    }
+}
+
 extension Acronym: PostgreSQLModel {}
 extension Acronym: Content {}
 extension Acronym: Parameter {}
