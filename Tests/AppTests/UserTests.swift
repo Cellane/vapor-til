@@ -7,7 +7,6 @@ final class UserTests: XCTestCase {
     let usersURI = "/api/users/"
     let usersName = "Alice"
     let usersUsername = "alicea"
-    let usersPassword = "password"
     var app: Application!
     var conn: PostgreSQLConnection!
 
@@ -28,20 +27,21 @@ final class UserTests: XCTestCase {
 
         let users = try app.getResponse(to: usersURI, decodeTo: [User.Public].self)
 
-        XCTAssertEqual(users.count, 2)
-        XCTAssertEqual(users[0].name, usersName)
-        XCTAssertEqual(users[0].username, usersUsername)
-        XCTAssertEqual(users[0].id, user.id)
+        XCTAssertEqual(users.count, 3)
+        XCTAssertEqual(users[1].name, usersName)
+        XCTAssertEqual(users[1].username, usersUsername)
+        XCTAssertEqual(users[1].id, user.id)
     }
 
     func testUserCanBeSavedWithAPI() throws {
-        let user = User(name: usersName, username: usersUsername, password: usersPassword)
+        let user = User(name: usersName, username: usersUsername, password: "password")
         let receivedUser = try app.getResponse(
             to: usersURI,
             method: .POST,
             headers: ["Content-Type": "application/json"],
             data: user,
-            decodeTo: User.Public.self
+            decodeTo: User.Public.self,
+            loggedInRequest: true
         )
 
         XCTAssertEqual(receivedUser.name, usersName)
@@ -50,10 +50,10 @@ final class UserTests: XCTestCase {
 
         let users = try app.getResponse(to: usersURI, decodeTo: [User.Public].self)
 
-        XCTAssertEqual(users.count, 1)
-        XCTAssertEqual(users[0].name, usersName)
-        XCTAssertEqual(users[0].username, usersUsername)
-        XCTAssertEqual(users[0].id, receivedUser.id)
+        XCTAssertEqual(users.count, 2)
+        XCTAssertEqual(users[1].name, usersName)
+        XCTAssertEqual(users[1].username, usersUsername)
+        XCTAssertEqual(users[1].id, receivedUser.id)
     }
 
     func testGettingASingleUserFromTheAPI() throws {

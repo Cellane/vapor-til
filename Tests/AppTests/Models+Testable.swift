@@ -1,19 +1,23 @@
 @testable import App
+import Crypto
 import FluentPostgreSQL
 
 extension User {
     static func create(
         name: String = "Luke",
-        username: String = "lukes",
-        password: String = "password",
+        username: String? = nil,
         on connection: PostgreSQLConnection
     ) throws -> User {
-        // Required due to the added UNIQUE constraint
-        if let existing = try User.query(on: connection).filter(\.username == username).first().wait() {
-            return existing
+        var createUsername: String
+
+        if let suppliedUsername = username {
+            createUsername = suppliedUsername
+        } else {
+            createUsername = UUID().uuidString
         }
 
-        let user = User(name: name, username: username, password: password)
+        let password = try BCrypt.hash("password")
+        let user = User(name: name, username: createUsername, password: password)
 
         return try user.save(on: connection).wait()
     }

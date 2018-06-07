@@ -1,4 +1,5 @@
 import Authentication
+import Crypto
 import FluentPostgreSQL
 import Foundation
 import Vapor

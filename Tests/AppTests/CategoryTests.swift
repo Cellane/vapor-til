@@ -38,7 +38,8 @@ final class CategoryTests: XCTestCase {
             method: .POST,
             headers: ["Content-Type": "application/json"],
             data: category,
-            decodeTo: Category.self
+            decodeTo: Category.self,
+            loggedInRequest: true
         )
 
         XCTAssertEqual(receivedCategory.name, categoryName)
@@ -65,14 +66,13 @@ final class CategoryTests: XCTestCase {
         let acronym = try Acronym.create(short: acronymShort, long: acronymLong, on: conn)
         let acronym2 = try Acronym.create(on: conn)
         let category = try Category.create(name: categoryName, on: conn)
+        let acronym1URL = "/api/acronyms/\(acronym.id!)/categories/\(category.id!)"
+        let acronym2URL = "/api/acronyms/\(acronym2.id!)/categories/\(category.id!)"
 
-        try app.sendRequest(to: "/api/acronyms/\(acronym.id!)/categories/\(category.id!)", method: .POST)
-        try app.sendRequest(to: "/api/acronyms/\(acronym2.id!)/categories/\(category.id!)", method: .POST)
+        _ = try app.sendRequest(to: acronym1URL, method: .POST, loggedInRequest: true)
+        _ = try app.sendRequest(to: acronym2URL, method: .POST, loggedInRequest: true)
 
-        let acronyms = try app.getResponse(
-            to: "\(categoriesURI)\(category.id!)/acronyms",
-            decodeTo: [Acronym].self
-        )
+        let acronyms = try app.getResponse(to: "\(categoriesURI)\(category.id!)/acronyms", decodeTo: [Acronym].self)
 
         XCTAssertEqual(acronyms.count, 2)
         XCTAssertEqual(acronyms[0].id, acronym.id)

@@ -60,7 +60,8 @@ final class AcronymTests: XCTestCase {
             method: .POST,
             headers: ["Content-Type": "application/json"],
             data: acronym,
-            decodeTo: Acronym.self
+            decodeTo: Acronym.self,
+            loggedInRequest: true
         )
 
         XCTAssertEqual(receivedAcronym.short, acronymShort)
@@ -95,7 +96,8 @@ final class AcronymTests: XCTestCase {
             to: "\(acronymsURI)\(acronym.id!)",
             method: .PUT,
             headers: ["Content-Type": "application/json"],
-            data: updatedAcronym
+            data: updatedAcronym,
+            loggedInUser: newUser
         )
 
         let returnedAcronym = try app.getResponse(to: "\(acronymsURI)\(acronym.id!)", decodeTo: Acronym.self)
@@ -111,7 +113,11 @@ final class AcronymTests: XCTestCase {
 
         XCTAssertEqual(acronyms.count, 1)
 
-        _ = try app.sendRequest(to: "\(acronymsURI)\(acronym.id!)", method: .DELETE)
+        _ = try app.sendRequest(
+            to: "\(acronymsURI)\(acronym.id!)",
+            method: .DELETE,
+            loggedInRequest: true
+        )
         acronyms = try app.getResponse(to: acronymsURI, decodeTo: [Acronym].self)
 
         XCTAssertEqual(acronyms.count, 0)
@@ -178,9 +184,11 @@ final class AcronymTests: XCTestCase {
         let category = try Category.create(on: conn)
         let category2 = try Category.create(name: "Funny", on: conn)
         let acronym = try Acronym.create(on: conn)
+        let request1URL = "\(acronymsURI)\(acronym.id!)/categories/\(category.id!)"
+        let request2URL = "\(acronymsURI)\(acronym.id!)/categories/\(category2.id!)"
 
-        _ = try app.sendRequest(to: "\(acronymsURI)\(acronym.id!)/categories/\(category.id!)", method: .POST)
-        _ = try app.sendRequest(to: "\(acronymsURI)\(acronym.id!)/categories/\(category2.id!)", method: .POST)
+        _ = try app.sendRequest(to: request1URL, method: .POST, loggedInRequest: true)
+        _ = try app.sendRequest(to: request2URL, method: .POST, loggedInRequest: true)
 
         let categories = try app.getResponse(to: "\(acronymsURI)\(acronym.id!)/categories", decodeTo: [App.Category].self)
 

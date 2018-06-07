@@ -1,4 +1,5 @@
-import App
+@testable import App
+import Authentication
 import FluentPostgreSQL
 import Vapor
 
@@ -27,15 +28,41 @@ extension Application {
     }
 
     @discardableResult
-    func sendRequest(
+    func sendRequest<T>(
         to path: String,
         method: HTTPMethod,
         headers: HTTPHeaders = .init(),
-        body: HTTPBody = .init()
-    ) throws -> Response {
-        let responder = try self.make(Responder.self)
-        let request = HTTPRequest(method: method, url: URL(string: path)!, headers: headers, body: body)
+        body: T? = nil,
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
+    ) throws -> Response where T: Content {
+        var headers = headers
+
+        if (loggedInRequest || loggedInUser != nil) {
+            var tokenHeaders: HTTPHeaders
+
+            if let user = loggedInUser {
+                let credentials = BasicAuthorization(username: user.username, password: "password")
+
+                tokenHeaders = .init()
+                tokenHeaders.basicAuthorization = credentials
+            } else {
+                tokenHeaders = ["Authorization": "Basic QWRtaW46cGFzc3dvcmQ="]
+            }
+
+            let tokenResponse = try self.sendRequest(to: "/api/users/login", method: .POST, headers: tokenHeaders)
+            let token = try tokenResponse.content.syncDecode(Token.self)
+
+            headers.add(name: .authorization, value: "Bearer \(token.token)")
+        }
+
+        let responder = try make(Responder.self)
+        let request = HTTPRequest(method: method, url: URL(string: path)!, headers: headers)
         let wrappedRequest = Request(http: request, using: self)
+
+        if let body = body {
+            try wrappedRequest.content.encode(body)
+        }
 
         return try responder.respond(to: wrappedRequest).wait()
     }
@@ -44,11 +71,60 @@ extension Application {
         to path: String,
         method: HTTPMethod,
         headers: HTTPHeaders,
-        data: T
-    ) throws where T: Encodable {
-        let body = try HTTPBody(data: JSONEncoder().encode(data))
+        data: T,
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
+    ) throws where T: Content {
+        _ = try self.sendRequest(
+            to: path,
+            method: method,
+            headers: headers,
+            body: data,
+            loggedInRequest: loggedInRequest,
+            loggedInUser: loggedInUser
+        )
+    }
 
-        _ = try self.sendRequest(to: path, method: method, headers: headers, body: body)
+    @discardableResult
+    func sendRequest(
+        to path: String,
+        method: HTTPMethod,
+        headers: HTTPHeaders = .init(),
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
+    ) throws -> Response {
+        let emptyContent: EmptyContent? = nil
+
+        return try sendRequest(
+            to: path,
+            method: method,
+            headers: headers,
+            body: emptyContent,
+            loggedInRequest: loggedInRequest,
+            loggedInUser: loggedInUser
+        )
+    }
+
+    @discardableResult
+    func getResponse<C, T>(
+        to path: String,
+        method: HTTPMethod = .GET,
+        headers: HTTPHeaders = .init(),
+        data: C? = nil,
+        decodeTo type: T.Type,
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
+    ) throws -> T where C: Content, T: Decodable {
+        let response = try self.sendRequest(
+            to: path,
+            method: method,
+            headers: headers,
+            body: data,
+            loggedInRequest: loggedInRequest,
+            loggedInUser: loggedInUser
+        )
+
+        return try response.content.decode(type).wait()
     }
 
     @discardableResult
@@ -56,24 +132,22 @@ extension Application {
         to path: String,
         method: HTTPMethod = .GET,
         headers: HTTPHeaders = .init(),
-        body: HTTPBody = .init(),
-        decodeTo type: T.Type
-    ) throws -> T where T: Decodable {
-        let response = try self.sendRequest(to: path, method: method, headers: headers, body: body)
+        decodeTo type: T.Type,
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
+    ) throws -> T where T: Content {
+        let emptyContent: EmptyContent? = nil
 
-        return try JSONDecoder().decode(type, from: response.http.body.data!)
-    }
-
-    @discardableResult
-    func getResponse<T, U>(
-        to path: String,
-        method: HTTPMethod = .GET,
-        headers: HTTPHeaders = .init(),
-        data: U,
-        decodeTo type: T.Type
-    ) throws -> T where T: Decodable, U: Encodable {
-        let body = try HTTPBody(data: JSONEncoder().encode(data))
-
-        return try self.getResponse(to: path, method: method, headers: headers, body: body, decodeTo: type)
+        return try self.getResponse(
+            to: path,
+            method: method,
+            headers: headers,
+            data: emptyContent,
+            decodeTo: type,
+            loggedInRequest: loggedInRequest,
+            loggedInUser: loggedInUser
+        )
     }
 }
+
+struct EmptyContent: Content {}
