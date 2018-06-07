@@ -1,6 +1,6 @@
-import Vapor
 import App
 import FluentPostgreSQL
+import Vapor
 
 extension Application {
     static func testable(envArgs: [String]? = nil) throws -> Application {
@@ -27,7 +27,12 @@ extension Application {
     }
 
     @discardableResult
-    func sendRequest(to path: String, method: HTTPMethod, headers: HTTPHeaders = .init(), body: HTTPBody = .init()) throws -> Response {
+    func sendRequest(
+        to path: String,
+        method: HTTPMethod,
+        headers: HTTPHeaders = .init(),
+        body: HTTPBody = .init()
+    ) throws -> Response {
         let responder = try self.make(Responder.self)
         let request = HTTPRequest(method: method, url: URL(string: path)!, headers: headers, body: body)
         let wrappedRequest = Request(http: request, using: self)
@@ -35,21 +40,38 @@ extension Application {
         return try responder.respond(to: wrappedRequest).wait()
     }
 
-    func sendRequest<T>(to path: String, method: HTTPMethod, headers: HTTPHeaders, data: T) throws where T: Encodable {
+    func sendRequest<T>(
+        to path: String,
+        method: HTTPMethod,
+        headers: HTTPHeaders,
+        data: T
+    ) throws where T: Encodable {
         let body = try HTTPBody(data: JSONEncoder().encode(data))
 
         _ = try self.sendRequest(to: path, method: method, headers: headers, body: body)
     }
 
     @discardableResult
-    func getResponse<T>(to path: String, method: HTTPMethod = .GET, headers: HTTPHeaders = .init(), body: HTTPBody = .init(), decodeTo type: T.Type) throws -> T where T: Decodable {
+    func getResponse<T>(
+        to path: String,
+        method: HTTPMethod = .GET,
+        headers: HTTPHeaders = .init(),
+        body: HTTPBody = .init(),
+        decodeTo type: T.Type
+    ) throws -> T where T: Decodable {
         let response = try self.sendRequest(to: path, method: method, headers: headers, body: body)
 
         return try JSONDecoder().decode(type, from: response.http.body.data!)
     }
 
     @discardableResult
-    func getResponse<T, U>(to path: String, method: HTTPMethod = .GET, headers: HTTPHeaders = .init(), data: U, decodeTo type: T.Type) throws -> T where T: Decodable, U: Encodable {
+    func getResponse<T, U>(
+        to path: String,
+        method: HTTPMethod = .GET,
+        headers: HTTPHeaders = .init(),
+        data: U,
+        decodeTo type: T.Type
+    ) throws -> T where T: Decodable, U: Encodable {
         let body = try HTTPBody(data: JSONEncoder().encode(data))
 
         return try self.getResponse(to: path, method: method, headers: headers, body: body, decodeTo: type)

@@ -1,5 +1,5 @@
-import Vapor
 import FluentPostgreSQL
+import Vapor
 
 final class Category: Codable {
     var id: Int?
@@ -11,8 +11,8 @@ final class Category: Codable {
 }
 
 extension Category: PostgreSQLModel {}
-extension Category: Content {}
 extension Category: Migration {}
+extension Category: Content {}
 extension Category: Parameter {}
 
 extension Category {

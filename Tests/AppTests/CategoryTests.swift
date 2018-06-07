@@ -1,7 +1,7 @@
 @testable import App
+import FluentPostgreSQL
 import Vapor
 import XCTest
-import FluentPostgreSQL
 
 final class CategoryTests: XCTestCase {
     let categoriesURI = "/api/categories/"
@@ -33,7 +33,13 @@ final class CategoryTests: XCTestCase {
 
     func testCategoryCanBeSavedWithAPI() throws {
         let category = Category(name: categoryName)
-        let receivedCategory = try app.getResponse(to: categoriesURI, method: .POST, headers: ["Content-Type": "application/json"], data: category, decodeTo: Category.self)
+        let receivedCategory = try app.getResponse(
+            to: categoriesURI,
+            method: .POST,
+            headers: ["Content-Type": "application/json"],
+            data: category,
+            decodeTo: Category.self
+        )
 
         XCTAssertEqual(receivedCategory.name, categoryName)
         XCTAssertNotNil(receivedCategory.id)
@@ -63,7 +69,10 @@ final class CategoryTests: XCTestCase {
         try app.sendRequest(to: "/api/acronyms/\(acronym.id!)/categories/\(category.id!)", method: .POST)
         try app.sendRequest(to: "/api/acronyms/\(acronym2.id!)/categories/\(category.id!)", method: .POST)
 
-        let acronyms = try app.getResponse(to: "\(categoriesURI)\(category.id!)/acronyms", decodeTo: [Acronym].self)
+        let acronyms = try app.getResponse(
+            to: "\(categoriesURI)\(category.id!)/acronyms",
+            decodeTo: [Acronym].self
+        )
 
         XCTAssertEqual(acronyms.count, 2)
         XCTAssertEqual(acronyms[0].id, acronym.id)

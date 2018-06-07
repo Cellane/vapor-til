@@ -1,5 +1,5 @@
-import Foundation
 import FluentPostgreSQL
+import Foundation
 
 final class AcronymCategoryPivot: PostgreSQLUUIDPivot {
     var id: UUID?

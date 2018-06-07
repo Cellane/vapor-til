@@ -1,5 +1,5 @@
-import Vapor
 import FluentPostgreSQL
+import Vapor
 
 final class Acronym: Codable {
     var id: Int?
@@ -14,6 +14,7 @@ final class Acronym: Codable {
     }
 }
 
+/*
 extension Acronym {
     func willCreate(on connection: PostgreSQLConnection) throws -> EventLoopFuture<Acronym> {
         try validate()
@@ -27,6 +28,7 @@ extension Acronym {
         return Future.map(on: connection) { self }
     }
 }
+*/
 
 extension Acronym: PostgreSQLModel {}
 extension Acronym: Content {}

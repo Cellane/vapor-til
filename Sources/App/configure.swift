@@ -1,3 +1,4 @@
+import Authentication
 import FluentPostgreSQL
 import Vapor
 import Leaf
@@ -11,6 +12,7 @@ public func configure(
     _ services: inout Services
 ) throws {
     /// Register providers first
+    try services.register(AuthenticationProvider())
     try services.register(FluentPostgreSQLProvider())
     try services.register(LeafProvider())
 
@@ -69,13 +71,12 @@ public func configure(
     /// Configure migrations
     var migrations = MigrationConfig()
     migrations.add(model: User.self, database: .psql)
+    migrations.add(model: Token.self, database: .psql)
     migrations.add(model: Acronym.self, database: .psql)
     migrations.add(model: Category.self, database: .psql)
     migrations.add(model: AcronymCategoryPivot.self, database: .psql)
 
-    //if env == .testing {
-    //    migrations.add(migration: PopulateUsers.self, database: .psql)
-    //}
+    migrations.add(migration: AdminUser.self, database: .psql)
     services.register(migrations)
 
     var commandConfig = CommandConfig.default()
