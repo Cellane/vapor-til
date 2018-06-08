@@ -1,5 +1,7 @@
 import Authentication
 import Fluent
+import FluentSQL
+import FluentPostgreSQL
 import Vapor
 
 struct AcronymsController: RouteCollection {

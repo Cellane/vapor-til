@@ -25,6 +25,7 @@ public func configure(
     var middlewares = MiddlewareConfig() // Create _empty_ middleware config
     middlewares.use(FileMiddleware.self) // Serves files from `Public/` directory
     middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
+    middlewares.use(SessionsMiddleware.self)
     let corsConfiguration = CORSMiddleware.Configuration(allowedOrigin: .all, allowedMethods: [.GET, .PUT], allowedHeaders: [.transferEncoding])
     middlewares.use(CORSMiddleware(configuration: corsConfiguration))
     services.register(middlewares)
@@ -66,6 +67,7 @@ public func configure(
 
     let database = PostgreSQLDatabase(config: databaseConfig)
     databases.add(database: database, as: .psql)
+    databases.enableLogging(on: .psql)
     services.register(databases)
 
     /// Configure migrations
@@ -84,4 +86,5 @@ public func configure(
     services.register(commandConfig)
 
     config.prefer(LeafRenderer.self, for: ViewRenderer.self)
+    config.prefer(MemoryKeyedCache.self, for: KeyedCache.self)
 }
